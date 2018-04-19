@@ -1,0 +1,146 @@
+package syntactical;
+
+import lexical.Lexanalizer;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+import errors.ErrorSintactico;
+import java_cup.runtime.Symbol;
+
+scan with {:
+	return getScanner().next_token();
+:};
+parser code {:
+public void syntax_error(Symbol unidadLexica){
+				ErrorSintactico.errorSintactico(unidadLexica);
+	}
+:};
+
+init with {:
+   Lexanalizer alex = (Lexanalizer)getScanner();
+:};
+
+
+terminal     DECLVAR, TIPVAR, ARRAY,
+             SEP, PAP, PCI, DIMSEP, CORCHAPERTURA, CORCHCIERRE,
+             ASIGN,
+             PRINCFUN, ENTRTIPFUNC, SALTIPFUNC,
+             ENTRIMPLFUNC, SALIMPLFUNC, RESULTADO,
+             LLAMADA, PARAM,
+             IF, ELSE, WHILE,
+             ACCESO, CIERRE, FIN;
+terminal Tipo NULL, BOOL, ENT;
+terminal Operadores MAS, MENOS, POR, IGUAL, MAYOR, MENOR, MENOROIGUAL, MAYOROIGUAL, DIFF, NEG, DIS, CON;
+terminal String IDV;
+terminal String NUMENT, WILDCARD;
+terminal boolean TRUE, FALSE;
+
+non terminal Lista Programa;
+non terminal Lista Bloque;
+non terminal Generic Sentencia;
+non terminal Decl Decl_variable;
+non terminal DeclF Decl_funcion;
+non terminal InstIf Suponiendo;
+non terminal InstWh Mientras;
+non terminal InstDo Invocacion;
+non terminal InstAsign Asignacion;
+non terminal ExprB Expresion_booleana;
+non terminal ExprA Expresion_aritmetica;
+non terminal Expr Expresion;
+non terminal NumConst Constante_aritmetica;
+non terminal BoolConst Constante_booleana;
+non terminal Lista Lista_decl_func;
+non terminal Lista Lista_tipos;
+non terminal Lista Lista_vars;
+non terminal Valor Valor;
+non terminal TipoG TipoG;
+non terminal Tipo Tipo;
+non terminal Dimension Dimension;
+non terminal Variable Variable;
+
+
+
+precedence left NEG;
+precedence left POR, CON;
+precedence left MAS, MENOS, DIS;
+precedence left MENOR, MAYOR, MAYOROIGUAL, MENOROIGUAL;
+precedence left IGUAL, DIFF;
+
+start with Programa;
+
+Programa  ::=  Lista_decl_func:b 	                            {: RESULT = b; :}
+    ;
+Lista_decl_func ::= Lista_decl_func:li Decl_funcion:d              {: li.add(d); RESULT = li; :}
+    | Decl_funcion:d                                               {: RESULT = new Lista("D",d); :}
+    ;
+Bloque  ::=  Sentencia:s 								        {: RESULT = new Lista("G",s); :}
+	| Bloque:b Sentencia:s  								    {: b.add(s); RESULT = b; :}
+    ;
+Sentencia  ::= Decl_variable:d FIN     							{: RESULT = d; :}
+    | Suponiendo:s												{: RESULT = s; :}
+    | Mientras:m                                                {: RESULT = m; :}
+    | Invocacion:i FIN                                          {: RESULT = i; :}
+    | Asignacion:a FIN                                          {: RESULT = a; :}
+    ;
+Suponiendo ::= IF PAP Expresion_booleana:eb PCI CORCHAPERTURA Bloque:b CORCHCIERRE  {: RESULT = new InstIf(eb, b, null); :}
+	| IF PAP Expresion_booleana:eb PCI CORCHAPERTURA Bloque:b1 CORCHCIERRE ELSE CORCHAPERTURA Bloque:b2	CORCHCIERRE {: RESULT = new InstIf(eb, b1, b2); :}
+    ;
+Mientras ::= WHILE PAP Expresion_booleana:eb PCI CORCHAPERTURA Bloque:b CORCHCIERRE {: RESULT = new InstWh(eb, b); :}
+    ;
+Decl_variable ::= DECLVAR IDV:i TIPVAR TipoG:t                   {: RESULT = Decl(i, t); :}
+    ;
+TipoG ::= Tipo:t                                                {: RESULT = new TipoG(t); :}
+    | ARRAY Dimension:d Tipo:t                                  {: RESULT = new Arreglo(d, t); :}
+    ;
+Tipo ::= ENT																										{: RESULT = Tipo.ENT; :}
+	| BOOL																												{: RESULT = Tipo.BOOL; :}
+  | NULL                                                	      {: RESULT = Tipo.NULL; :}
+	;
+Dimension ::= WILDCARD                                          {: RESULT = new Wildcard(); :}
+    | Constante_aritmetica:c                                    {: RESULT = new ConcreteDimension(c); :}
+    | Dimension:d DIMSEP WILDCARD                               {: RESULT = new Dimension(new Wildcard(), d); :}
+    | Dimension:d DIMSEP Constante_aritmetica:c                 {: RESULT = new Dimension(new ConcreteDimension(c), d); :}
+    ;
+Invocacion ::= LLAMADA IDV:i PARAM PAP Lista_vars:p PCI         {: RESULT = new InstDo(i, p); :}
+    ;
+Lista_vars ::= Lista_vars:l SEP Valor:v                         {: l.add(v); RESULT = l; :}
+    | Valor:v                                                   {: RESULT = new Lista("V",v); :}
+    ;
+Valor ::= Variable:i                                            {: RESULT = new Valor(i); :}
+    | Constante_aritmetica:c                                    {: RESULT = new Valor(c); :}
+    | Constante_booleana:c                                      {: RESULT = new Valor(c); :}
+    ;
+Variable ::= IDV:i ACCESO Lista_vars:l CIERRE                   {: RESULT = new Variable(i, l); :}
+    | IDV:i                                                     {: RESULT = new Variable(i, null); :}
+    ;
+Constante_aritmetica ::= NUMENT:n                               {: RESULT = new NumConst(n); :}
+    ;
+Constante_booleana ::= TRUE                                     {: RESULT = new BoolConst(true); :}
+    | FALSE                                                     {: RESULT = new BoolConst(false); :}
+    ;
+Asignacion ::= Variable:v ASIGN Expresion:e                     {: RESULT = new InstAsign(v, e); :}
+    ;
+Expresion ::= Expresion_booleana:e                              {: RESULT = e; :}
+    | Expresion_aritmetica:e                                    {: RESULT = e; :}
+		| Variable:v                                                {: RESULT = new Expr(v); :}
+    | Invocacion:i                                              {: RESULT = new Expr(i); :}
+    ;
+Expresion_booleana ::= Constante_booleana:b                     {: RESULT = new ExprB(b); :}
+    | NEG PAP Expresion_booleana:e PCI                           {: RESULT = new ExprB(e, Operadores.NEG); :}
+    | PAP Expresion_booleana:e1 PCI CON PAP Expresion_booleana:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.CON); :}
+    | PAP Expresion_booleana:e1 PCI DIS PAP Expresion_booleana:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.DIS); :}
+    | PAP Expresion_aritmetica:e1 PCI IGUAL PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.IGUAL); :}
+    | PAP Expresion_aritmetica:e1 PCI DIFF PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.DIFF); :}
+    | PAP Expresion_aritmetica:e1 PCI MENOR PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.MENOR); :}
+    | PAP Expresion_aritmetica:e1 PCI MAYOR PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.MAYOR); :}
+    | PAP Expresion_aritmetica:e1 PCI MENOROIGUAL PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.MENOROIGUAL); :}
+    | PAP Expresion_aritmetica:e1 PCI MAYOROIGUAL PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprB(e1, e2, Operadores.MAYOROIGUAL); :}
+    ;
+Expresion_aritmetica ::= Constante_aritmetica:c                 {: RESULT = new ExprA(c); :}
+    | PAP Expresion_aritmetica:e1 PCI MAS PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprA(e1, e2, Operadores.MAS); :}
+    | PAP Expresion_aritmetica:e1 PCI MENOS PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprA(e1, e2, Operadores.MENOS); :}
+    | PAP Expresion_aritmetica:e1 PCI POR PAP Expresion_aritmetica:e2 PCI {: RESULT = new ExprA(e1, e2, Operadores.POR); :}
+    ;
+Decl_funcion ::= PRINCFUN IDV:i ENTRTIPFUNC PAP Lista_tipos:lt PCI SALTIPFUNC Tipo:t ENTRIMPLFUNC PAP Lista_vars:lv PCI SALIMPLFUNC CORCHAPERTURA Bloque:b RESULTADO Expresion:e FIN CORCHCIERRE                                     {: RESULT = new DeclF(i, lt, t, lv, b, e); :}
+    ;
+Lista_tipos ::= Lista_tipos:lt SEP TipoG:t                      {: lt.add(t); RESULT = lt; :}
+    | TipoG:t                                                   {: RESULT = new Lista("T",t); :}
+    ;

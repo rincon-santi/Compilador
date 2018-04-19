@@ -1,0 +1,145 @@
+package lexical;
+
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.Location;
+import java_cup.runtime.Symbol;
+import java.lang.Error;
+import errors.ErrorLexico;
+import java.io.*;
+
+
+%%
+%class Lexanalizer
+%implements sym_lexanalizer
+%line
+%cup
+%type  java_cup.runtime.Symbol
+%char
+%public
+%unicode
+
+%{
+  private Lexer_ops ops;
+  public String lexema() {return yytext();}
+  public int fila() {return yyline+1;}
+  public int columna() {return yychar+1;}
+  private ComplexSymbolFactory factSimbolos;
+  private int lineacs,columnacs;
+  public Lexanalizer(Reader r, ComplexSymbolFactory sf){
+	this(r);
+    symbolFactory = sf;
+  }
+  public Symbol symbol(String name, int code){
+	return factSimbolos.newSymbol(name, code,new Location(yyline+1,yychar+1-yylength()),new Location(yyline+1,yychar+1));
+  }
+  public Symbol symbol(String name, int code, String lexem){
+	return factSimbolos.newSymbol(name, code, new Location(yyline+1, yychar +1), new Location(yyline+1,yychar+yylength()), lexem);
+  }
+%}
+
+%eofval{
+	return ops.unidadEOF();
+%eofval}
+
+%init{
+  ops = new lexer_ops(this);
+%init}
+
+letra  = [A-Z]|[a-z]
+digito = [0-9]
+numeroEntero = [-]?{digito}+
+tipoEntero = entero
+tipoBool = booleano
+tipoNull = vacio
+tipoArray = array
+blancos = [ \t|\r|\b|\n]
+igual = "==="
+mayor = >
+menor = <
+separador = ,
+mayoroigual = >=
+menoroigual = =<
+separadorDimensiones = x
+distinto = "=/="
+conjuncion = y
+disyuncion = o
+negacion = no
+operadorMas = mas
+operadorMenos = menos
+operadorPor = por
+operadorAsignacion = "<-"
+true = VV
+false = FF
+wildcard = "_"
+declaracionVar = Sea
+tipadoVar = un
+principioFuncion = Definamos
+entradaTipadoFuncion = ":"
+salidaTipadoFuncion = "->"
+entradaImplFuncion = enviando
+salidaImplFuncion = "|->"
+resultadoFuncion = Devuelve
+llamadaFuncion = evalua
+parametrosLlamada = en
+corcheteApertura = \{
+corcheteCierre = \}
+finSentencia= "."
+parentesisApertura = \(
+parentesisCierre = \)
+if = Suponiendo
+else = contrariamente
+while = Mientras
+accesoArray = \[
+cierreAcceso = \]
+comentario = COMENTANDO[^\n]*
+identificadorV = {letra}({letra}|{digito})*
+
+%%
+
+{accesoArray}		      {return ops.unidadAccesoArray();}
+{cierreAcceso}			  {return ops.unidadCierreAcceso();}
+{separador}               {return ops.unidadSep();}
+{comentario}		  	  {}
+{blancos}				  {}
+{numeroEntero}		  	  {return ops.unidadNumeroEntero();}
+{igual}                   {return ops.unidadIgual();}
+{mayor}                   {return ops.unidadMayor();}
+{menor}                   {return ops.unidadMenor();}
+{mayoroigual}             {return ops.unidadMayorOIgual();}
+{menoroigual}             {return ops.unidadMenorOIgual();}
+{distinto}                {return ops.unidadDistinto();}
+{conjuncion}              {return ops.unidadConjuncion();}
+{disyuncion}              {return ops.unidadDisyuncion();}
+{negacion}                {return ops.unidadNegacion();}
+{operadorMas}             {return ops.unidadOperadorMas();}
+{operadorMenos}           {return ops.unidadOperadorMenos();}
+{operadorPor}             {return ops.unidadOperadorPor();}
+{operadorAsignacion}      {return ops.unidadOperadorAsignacion();}
+{tipoBool}                {return ops.unidadTipoBool();}
+{tipoEntero}              {return ops.unidadTipoEntero();}
+{tipoNull}                {return ops.unidadTipoNull();}
+{tipoArray}               {return ops.unidadTipoArray();}
+{wildcard}                {return ops.unidadWildcard();}
+{true}                    {return ops.unidadTrue();}
+{false}                   {return ops.unidadFalse();}
+{parentesisApertura}      {return ops.unidadParentesisApertura();}
+{parentesisCierre}        {return ops.unidadParentesisCierre();}
+{if}			  		  {return ops.unidadIf();}
+{else}	          		  {return ops.unidadElse();}
+{while}		    	 	  {return ops.unidadWhile();}
+{separadorDimensiones}    {return ops.unidadSeparadorDimensiones();}
+{declaracionVar}          {return ops.unidadDeclaracionVar();}
+{tipadoVar}               {return ops.unidadTipadoVar();}
+{principioFuncion}        {return ops.unidadPrincipioFuncion();}
+{entradaTipadoFuncion}    {return ops.unidadEntradaTipadoFuncion();}
+{salidaTipadoFuncion}     {return ops.unidadSalidaTipadoFuncion();}
+{entradaImplFuncion}      {return ops.unidadEntradaImplFuncion();}
+{salidaImplFuncion}       {return ops.unidadSalidaImplFuncion();}
+{resultadoFuncion}        {return ops.unidadResultadoFuncion();}
+{llamadaFuncion}          {return ops.unidadLlamadaFuncion();}
+{parametrosLlamada}       {return ops.unidadParametrosLlamada();}
+{corcheteApertura}        {return ops.unidadCorcheteApertura();}
+{corcheteCierre}          {return ops.unidadCorcheteCierre();}
+{finSentencia}            {return ops.unidadFinSentencia();}
+{identificadorV}          {return ops.unidadIdV();}
+. {ErrorLexico.errorLexico(fila(), lexema());}

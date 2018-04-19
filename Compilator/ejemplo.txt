@@ -1,0 +1,12 @@
+Definamos factorial : (entero) -> entero
+enviando (n) |-> {
+Sea resultado un entero.
+Suponiendo (n > 0) {
+Sea antecesor un entero.
+antecesor <- n menos 1.
+resultado <- resultado por evalua factorial en (antecesor).
+} contrariamente {
+resultado <- 1.
+}
+Devuelve resultado.
+}
