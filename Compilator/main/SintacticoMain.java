@@ -20,7 +20,7 @@ import syntactical.thisparser;
 public class SintacticoMain {
     public static void main(String[] args) {
         try{
-            Lexanalizer l=new Lexanalizer(new InputStreamReader(new java.io.FileInputStream("/home/tina/Documentos/Compilator/Compilator/ejemplo.txt")), new ComplexSymbolFactory());
+            Lexanalizer l=new Lexanalizer(new InputStreamReader(new java.io.FileInputStream("/home/tina/Documentos/Compilator/Compilator/main/ejemplo.txt")), new ComplexSymbolFactory());
             thisparser p;
             p = new thisparser(l, (SymbolFactory) new ComplexSymbolFactory());
             Symbol s=p.parse();

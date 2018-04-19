@@ -9,7 +9,7 @@ public class ExprB extends Expr{
     private final Operadores op;
     private BoolConst n;
 
-    public ExprB(ExprB ex, Operadores o){
+    public ExprB(Expr ex, Operadores o){
         super.type=3;
         eb1=ex;
         eb2=null;

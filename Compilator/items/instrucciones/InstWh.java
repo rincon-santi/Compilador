@@ -1,14 +1,14 @@
 package items.instrucciones;
 
 import items.conjuntos.Generic;
-import items.expresiones.ExprB;
+import items.expresiones.Expr;
 import items.conjuntos.Lista;
 
 public class InstWh implements Generic{
-    private ExprB cond;
+    private Expr cond;
     private Lista bloque;
 
-    public InstWh(ExprB c, Lista b){
+    public InstWh(Expr c, Lista b){
         cond=c;
         bloque=b;
     }

@@ -2,14 +2,14 @@ package items.instrucciones;
 
 import items.conjuntos.Generic;
 import items.conjuntos.Lista;
-import items.expresiones.ExprB;
+import items.expresiones.Expr;
 
 public class InstIf implements Generic{
-    private final ExprB condicion;
+    private final Expr condicion;
     private final Lista consecuencia;
     private final Lista aucontraire;
     
-    public InstIf(ExprB cond, Lista con, Lista au){
+    public InstIf(Expr cond, Lista con, Lista au){
         condicion=cond;
         consecuencia=con;
         aucontraire=au;

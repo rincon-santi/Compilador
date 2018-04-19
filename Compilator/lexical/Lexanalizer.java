@@ -26,7 +26,7 @@ public class Lexanalizer implements java_cup.runtime.Scanner {
   private int lineacs,columnacs;
   public Lexanalizer(Reader r, ComplexSymbolFactory sf){
 	this(r);
-    //symbolFactory = sf;
+    factSimbolos = sf;
   }
   public Symbol symbol(String name, int code){
 	return factSimbolos.newSymbol(name, code,new Location(yyline+1,yychar+1-yylength()),new Location(yyline+1,yychar+1));
@@ -519,7 +519,8 @@ public class Lexanalizer implements java_cup.runtime.Scanner {
 					case -6:
 						break;
 					case 6:
-						//{ErrorLexico.errorLexico(fila(), lexema());}
+						{//ErrorLexico.errorLexico(fila(), lexema());
+                                                }
 					case -7:
 						break;
 					case 7:
@@ -695,7 +696,8 @@ public class Lexanalizer implements java_cup.runtime.Scanner {
 					case -50:
 						break;
 					case 51:
-						//{ErrorLexico.errorLexico(fila(), lexema());}
+						{//ErrorLexico.errorLexico(fila(), lexema());
+                                                }
 					case -51:
 						break;
 					case 52:
@@ -707,7 +709,8 @@ public class Lexanalizer implements java_cup.runtime.Scanner {
 					case -53:
 						break;
 					case 55:
-						//{ErrorLexico.errorLexico(fila(), lexema());}
+						{//ErrorLexico.errorLexico(fila(), lexema());
+                                                }
 					case -54:
 						break;
 					case 57:

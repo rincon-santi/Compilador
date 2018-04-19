@@ -4,12 +4,12 @@ import items.basic.Operadores;
 import items.basic.NumConst;
 
 public class ExprA extends Expr{
-    private final ExprA eb1;
-    private final ExprA eb2;
+    private final Expr eb1;
+    private final Expr eb2;
     private final Operadores op;
     private NumConst n;
 
-    public ExprA(ExprA ex1, ExprA ex2, Operadores o){
+    public ExprA(Expr ex1, Expr ex2, Operadores o){
         super.type=3;
         eb1=ex1;
         eb2=ex2;
