@@ -24,7 +24,7 @@ public class SintacticoMain {
             thisparser p;
             p = new thisparser(l, (SymbolFactory) new ComplexSymbolFactory());
             Symbol s=p.parse();
-            System.out.println(s);
+            System.out.println(s.value);
         }catch(Exception e){
             System.out.println(e);}
     }

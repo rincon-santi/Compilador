@@ -333,8 +333,8 @@ public class thisparser extends java_cup.runtime.lr_parser {
   public java_cup.runtime.Symbol scan()
     throws java.lang.Exception
     {
-
-	return getScanner().next_token();
+        Symbol p=getScanner().next_token();
+	return p;
 
     }
 

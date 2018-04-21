@@ -18,13 +18,13 @@ public class Lista{
     public String toString(){
         String buffer="(";
         LinkedList<Object> aux=new LinkedList<>();
-        while(pila.getFirst()!=null){        
+        while(!pila.isEmpty()){        
             aux.add(pila.getFirst());
             buffer+=pila.getFirst().toString();
-            buffer+=",";
             pila.pop();
+            if (!pila.isEmpty())             buffer+=",";
         }
-        while(aux.getFirst()!=null){
+        while(!aux.isEmpty()){
             pila.add(aux.getFirst());
             aux.pop();
         }

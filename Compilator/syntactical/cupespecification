@@ -96,9 +96,9 @@ Decl_variable ::= DECLVAR IDV:i TIPVAR TipoG:t                   {: RESULT = new
 TipoG ::= Tipo:t                                                {: RESULT = new TipoG(t); :}
     | ARRAY Dimension:d Tipo:t                                  {: RESULT = new Arreglo(d, t); :}
     ;
-Tipo ::= ENT																										{: RESULT = Tipo.ENT; :}
-	| BOOL																												{: RESULT = Tipo.BOOL; :}
-  | NULL                                                	      {: RESULT = Tipo.NULL; :}
+Tipo ::= ENT													{: RESULT = Tipo.ENT; :}
+	| BOOL														{: RESULT = Tipo.BOOL; :}
+    | NULL                                                	    {: RESULT = Tipo.NULL; :}
 	;
 Dimension ::= WILDCARD                                          {: RESULT = new Wildcard(); :}
     | Constante_aritmetica:c                                    {: RESULT = new ConcreteDimension(c); :}
@@ -138,7 +138,7 @@ Expresion_booleana ::= Constante_booleana:b                     {: RESULT = new 
     | Expresion:e1 MENOR Expresion:e2                           {: RESULT = new ExprB(e1, e2, Operadores.MENOR); :}
     | Expresion:e1 MAYOR Expresion:e2                           {: RESULT = new ExprB(e1, e2, Operadores.MAYOR); :}
     | Expresion:e1 MENOROIGUAL Expresion:e2                     {: RESULT = new ExprB(e1, e2, Operadores.MENOROIGUAL); :}
-    | Expresion:e1 MAYOROIGUAL Expresion:e2                    {: RESULT = new ExprB(e1, e2, Operadores.MAYOROIGUAL); :}
+    | Expresion:e1 MAYOROIGUAL Expresion:e2                     {: RESULT = new ExprB(e1, e2, Operadores.MAYOROIGUAL); :}
     ;
 Expresion_aritmetica ::= Constante_aritmetica:c                 {: RESULT = new ExprA(c); :}
     | Expresion:e1 MAS Expresion:e2                             {: RESULT = new ExprA(e1, e2, Operadores.MAS); :}
