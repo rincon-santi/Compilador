@@ -3,14 +3,18 @@ package items.instrucciones;
 import items.conjuntos.Generic;
 import items.conjuntos.Lista;
 import items.basic.Variable;
+import items.declaraciones.DeclF;
 
 public class InstDo implements Generic{
-    private final String nombre;
-    private final Lista atributos;
+    public final String nombre;
+    public final Lista atributos;
+    public int fila;
+    public DeclF d;
 
-    public InstDo(String n, Lista a){
+    public InstDo(String n, Lista a, int f){
         nombre=n;
         atributos=a;
+        fila=f;
     }
 
     @Override

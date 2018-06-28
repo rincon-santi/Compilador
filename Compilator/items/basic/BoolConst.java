@@ -1,10 +1,12 @@
 package items.basic;
 
 public class BoolConst{
-    private boolean booleano;
+    public boolean booleano;
+    public int fila;
     
-    public BoolConst(boolean b){
+    public BoolConst(boolean b, int f){
         booleano=b;
+        fila=f;
     }
 
     @Override

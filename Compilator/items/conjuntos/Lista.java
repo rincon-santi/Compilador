@@ -3,15 +3,19 @@ package items.conjuntos;
 import java.util.LinkedList;
 
 public class Lista{  
-    private final LinkedList<Object> pila;
+    public final LinkedList<Object> pila;
     
-    public Lista(String kind, Object inicial){
+    public Lista(){
+        pila=new LinkedList<>();
+    }
+    
+    public Lista(Object inicial){
         pila = new LinkedList<>();
-        pila.push(inicial);    
+        pila.add(inicial);    
     }
     
     public void add(Object unomas){
-        pila.push(unomas);
+        pila.add(unomas);
     }
 
     @Override

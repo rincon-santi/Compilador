@@ -4,7 +4,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
 import java.lang.Error;
-import errors.ErrorLexico;
+import errores.ExcpLex;
 import java.io.*;
 
 
@@ -29,11 +29,15 @@ import java.io.*;
 	this(r);
     factSimbolos = sf;
   }
-  public Symbol symbol(String name, int code){
-	return factSimbolos.newSymbol(name, code,new Location(yyline+1,yychar+1-yylength()),new Location(yyline+1,yychar+1));
+  public Symbol symbol(String name, int code)   {
+      Symbol s=factSimbolos.newSymbol(name, code,new Location(yyline+1,yychar+1-yylength()),new Location(yyline+1,yychar+1));
+      s.left=yyline+1;
+	return s;
   }
   public Symbol symbol(String name, int code, String lexem){
-	return factSimbolos.newSymbol(name, code, new Location(yyline+1, yychar +1), new Location(yyline+1,yychar+yylength()), lexem);
+      Symbol s=factSimbolos.newSymbol(name, code, new Location(yyline+1, yychar +1), new Location(yyline+1,yychar+yylength()), lexem);
+      s.left=yyline+1;
+	return s;
   }
 %}
 
@@ -83,6 +87,7 @@ llamadaFuncion = evalua
 parametrosLlamada = en
 corcheteApertura = \{
 corcheteCierre = \}
+ref = "/r"
 finSentencia= "."
 parentesisApertura = \(
 parentesisCierre = \)
@@ -124,6 +129,7 @@ identificadorV = {letra}({letra}|{digito})*
 {false}                   {return ops.unidadFalse();}
 {parentesisApertura}      {return ops.unidadParentesisApertura();}
 {parentesisCierre}        {return ops.unidadParentesisCierre();}
+{ref}                     {return ops.unidadRef();}
 {if}			  		  {return ops.unidadIf();}
 {else}	          		  {return ops.unidadElse();}
 {while}		    	 	  {return ops.unidadWhile();}
@@ -142,4 +148,4 @@ identificadorV = {letra}({letra}|{digito})*
 {corcheteCierre}          {return ops.unidadCorcheteCierre();}
 {finSentencia}            {return ops.unidadFinSentencia();}
 {identificadorV}          {return ops.unidadIdV();}
-. {ErrorLexico.errorLexico(fila(), lexema());}
+. {ExcpLex.excpLex(fila(), columna(), lexema());}

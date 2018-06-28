@@ -80,6 +80,9 @@ public class Lexer_ops {
 	public Symbol unidadParentesisCierre() {
 		return sec.symbol(")",SintacticSym.PCI, ")"); 
 	} 
+    public Symbol unidadRef(){
+        return sec.symbol("/r",SintacticSym.REF, "/r");
+    }
 	public Symbol unidadIf() {
 		return sec.symbol("Suponiendo",SintacticSym.IF, "Suponiendo"); 
 	} 

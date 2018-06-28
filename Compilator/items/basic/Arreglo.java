@@ -1,11 +1,15 @@
 package items.basic;
 
-public class Arreglo extends TipoG{
-    private final Dimension d;
+import items.conjuntos.Dimension;
 
-    public Arreglo(Dimension dim, Tipo tip){
+public class Arreglo extends TipoG{
+    public final Dimension d;
+    public final int fila;
+
+    public Arreglo(Dimension dim, Tipo tip, int f){
         super.t=tip;
         d=dim;
+        fila=f;
     }
 
     @Override

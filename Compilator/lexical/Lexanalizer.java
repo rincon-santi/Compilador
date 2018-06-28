@@ -1,9 +1,9 @@
 package lexical;
+import errores.ExcpLex;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
 import java.lang.Error;
-//import errors.ErrorLexico;
 import java.io.*;
 
 
@@ -28,11 +28,15 @@ public class Lexanalizer implements java_cup.runtime.Scanner {
 	this(r);
     factSimbolos = sf;
   }
-  public Symbol symbol(String name, int code){
-	return factSimbolos.newSymbol(name, code,new Location(yyline+1,yychar+1-yylength()),new Location(yyline+1,yychar+1));
+  public Symbol symbol(String name, int code)   {
+      Symbol s=factSimbolos.newSymbol(name, code,new Location(yyline+1,yychar+1-yylength()),new Location(yyline+1,yychar+1));
+      s.left=yyline+1;
+	return s;
   }
   public Symbol symbol(String name, int code, String lexem){
-	return factSimbolos.newSymbol(name, code, new Location(yyline+1, yychar +1), new Location(yyline+1,yychar+yylength()), lexem);
+      Symbol s=factSimbolos.newSymbol(name, code, new Location(yyline+1, yychar +1), new Location(yyline+1,yychar+yylength()), lexem);
+      s.left=yyline+1;
+	return s;
   }
 	private java.io.BufferedReader yy_reader;
 	private int yy_buffer_index;
@@ -709,7 +713,7 @@ public class Lexanalizer implements java_cup.runtime.Scanner {
 					case -53:
 						break;
 					case 55:
-						{//ErrorLexico.errorLexico(fila(), lexema());
+						{ExcpLex.excpLex(fila(), columna(), lexema());
                                                 }
 					case -54:
 						break;

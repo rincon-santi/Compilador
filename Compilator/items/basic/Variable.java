@@ -1,14 +1,18 @@
 package items.basic;
 
 import items.conjuntos.Lista;
+import items.declaraciones.Decl;
 
 public class Variable{
-    private final String nombre;
-    private final Lista coord;
+    public final String nombre;
+    public final Lista coord;
+    public Decl d;
+    public int fila;
     
-    public Variable(String n, Lista l){
+    public Variable(String n, Lista l, int f){
         nombre=n;
         coord=l;
+        fila=f;
     }
 
     @Override

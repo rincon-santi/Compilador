@@ -2,7 +2,7 @@ package syntactical;
 
 import lexical.Lexanalizer;
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
-import errors.ErrorSintactico;
+import errores.ExcpSyn;
 import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import items.basic.*;
@@ -14,14 +14,15 @@ import items.instrucciones.*;
 scan with {:
 	return getScanner().next_token();
 :};
-parser code {:
-public void syntax_error(Symbol unidadLexica){
-				ErrorSintactico.errorSintactico(unidadLexica);
+parser code {: 
+    public void syntax_error(Symbol unidadLexica){
+				ExcpSyn.excpSyn(unidadLexica);
 	}
 :};
 
 init with {:
    Lexanalizer alex = (Lexanalizer)getScanner();
+    public parser(java_cup.runtime.Scanner s, java_cup.runtime.SymbolFactory sf) {super(s,sf);}
 :};
 
 
@@ -32,7 +33,8 @@ terminal     DECLVAR, TIPVAR, ARRAY,
              ENTRIMPLFUNC, SALIMPLFUNC, RESULTADO,
              LLAMADA, PARAM,
              IF, ELSE, WHILE,
-             ACCESO, CIERRE, FIN;
+             ACCESO, CIERRE, FIN,
+             REF;
 terminal Tipo NULL, BOOL, ENT;
 terminal Operadores MAS, MENOS, POR, IGUAL, MAYOR, MENOR, MENOROIGUAL, MAYOROIGUAL, DIFF, NEG, DIS, CON;
 terminal String IDV;
@@ -48,14 +50,13 @@ non terminal InstIf Suponiendo;
 non terminal InstWh Mientras;
 non terminal InstDo Invocacion;
 non terminal InstAsign Asignacion;
-non terminal ExprB Expresion_booleana;
-non terminal ExprA Expresion_aritmetica;
 non terminal Expr Expresion;
 non terminal NumConst Constante_aritmetica;
 non terminal BoolConst Constante_booleana;
 non terminal Lista Lista_decl_func;
 non terminal Lista Lista_tipos;
 non terminal Lista Lista_vars;
+non terminal Lista Lista_expr;
 non terminal Valor Valor;
 non terminal TipoG TipoG;
 non terminal Tipo Tipo;
@@ -75,12 +76,13 @@ start with Programa;
 Programa  ::=  Lista_decl_func:b 	                            {: RESULT = b; :}
     ;
 Lista_decl_func ::= Lista_decl_func:li Decl_funcion:d              {: li.add(d); RESULT = li; :}
-    | Decl_funcion:d                                               {: RESULT = new Lista("D",d); :}
+    | Decl_funcion:d                                               {: RESULT = new Lista(d); :}
     ;
-Bloque  ::=  Sentencia:s 								        {: RESULT = new Lista("G",s); :}
+Bloque  ::=  Sentencia:s 								        {: RESULT = new Lista(s); :}
 	| Bloque:b Sentencia:s  								    {: b.add(s); RESULT = b; :}
     ;
 Sentencia  ::= Decl_variable:d FIN     							{: RESULT = d; :}
+    | Decl_funcion:d                                            {: RESULT = d; :}
     | Suponiendo:s												{: RESULT = s; :}
     | Mientras:m                                                {: RESULT = m; :}
     | Invocacion:i FIN                                          {: RESULT = i; :}
@@ -91,62 +93,55 @@ Suponiendo ::= IF PAP Expresion:eb PCI CORCHAPERTURA Bloque:b CORCHCIERRE  {: RE
     ;
 Mientras ::= WHILE PAP Expresion:eb PCI CORCHAPERTURA Bloque:b CORCHCIERRE {: RESULT = new InstWh(eb, b); :}
     ;
-Decl_variable ::= DECLVAR IDV:i TIPVAR TipoG:t                   {: RESULT = new Decl(i, t); :}
+Decl_variable ::= DECLVAR IDV:i TIPVAR TipoG:t                   {: RESULT = new Decl(i, t, tleft); :}
     ;
-TipoG ::= Tipo:t                                                {: RESULT = new TipoG(t); :}
-    | ARRAY Dimension:d Tipo:t                                  {: RESULT = new Arreglo(d, t); :}
+TipoG ::= Tipo:t                                                {: RESULT = new TipoG(t, tleft); :}
+    | ARRAY Dimension:d Tipo:t                                  {: RESULT = new Arreglo(d, t, tleft); :}
     ;
 Tipo ::= ENT													{: RESULT = Tipo.ENT; :}
 	| BOOL														{: RESULT = Tipo.BOOL; :}
     | NULL                                                	    {: RESULT = Tipo.NULL; :}
 	;
-Dimension ::= WILDCARD                                          {: RESULT = new Wildcard(); :}
-    | Constante_aritmetica:c                                    {: RESULT = new ConcreteDimension(c); :}
-    | Dimension:d DIMSEP WILDCARD                               {: RESULT = new Dimension(new Wildcard(), d); :}
-    | Dimension:d DIMSEP Constante_aritmetica:c                 {: RESULT = new Dimension(new ConcreteDimension(c), d); :}
+Dimension ::=  Constante_aritmetica:c                                    {: RESULT = new Dimension(c, cleft); :}
+    | Dimension:d DIMSEP Constante_aritmetica:c                 {: d.add(c); RESULT = d;:}
     ;
-Invocacion ::= LLAMADA IDV:i PARAM PAP Lista_vars:p PCI         {: RESULT = new InstDo(i, p); :}
+Invocacion ::= LLAMADA IDV:i PARAM PAP Lista_expr:p PCI         {: RESULT = new InstDo(i, p, ileft); :}
     ;
-Lista_vars ::= Lista_vars:l SEP Valor:v                         {: l.add(v); RESULT = l; :}
-    | Valor:v                                                   {: RESULT = new Lista("V",v); :}
+Lista_vars ::= Lista_vars:l SEP IDV:v                         {: l.add(v); RESULT = l; :}
+    | IDV:v                                                   {: RESULT = new Lista(v); :}
     ;
-Valor ::= Variable:i                                            {: RESULT = new Valor(i); :}
-    | Constante_aritmetica:c                                    {: RESULT = new Valor(c); :}
-    | Constante_booleana:c                                      {: RESULT = new Valor(c); :}
+Lista_expr ::= Lista_expr:l SEP Expresion:e                     {: l.add(e); RESULT = l; :}
+    | Expresion:e                                               {: RESULT = new Lista(e); :}
     ;
-Variable ::= IDV:i ACCESO Lista_vars:l CIERRE                   {: RESULT = new Variable(i, l); :}
-    | IDV:i                                                     {: RESULT = new Variable(i, null); :}
+Variable ::= IDV:i ACCESO Lista_expr:l CIERRE                   {: RESULT = new Variable(i, l, ileft); :}
+    | IDV:i                                                     {: RESULT = new Variable(i, null, ileft); :}
     ;
-Constante_aritmetica ::= NUMENT:n                               {: RESULT = new NumConst(n); :}
+Constante_aritmetica ::= NUMENT:n                               {: RESULT = new NumConst(n, nleft); :}
     ;
-Constante_booleana ::= TRUE                                     {: RESULT = new BoolConst(true); :}
-    | FALSE                                                     {: RESULT = new BoolConst(false); :}
+Constante_booleana ::= TRUE:t                                     {: RESULT = new BoolConst(true, tleft); :}
+    | FALSE:f                                                     {: RESULT = new BoolConst(false, fleft); :}
     ;
 Asignacion ::= Variable:v ASIGN Expresion:e                     {: RESULT = new InstAsign(v, e); :}
     ;
-Expresion ::= Expresion_booleana:e                              {: RESULT = e; :}
-    | Expresion_aritmetica:e                                    {: RESULT = e; :}
-	| Variable:v                                                {: RESULT = new Expr(v); :}
-    | Invocacion:i                                              {: RESULT = new Expr(i); :}
+Expresion ::= Variable:v                                        {: RESULT = new Expr(v, vleft); :}
+    | Invocacion:i                                              {: RESULT = new Expr(i, ileft); :}
+    | Expresion:e1 CON Expresion:e2                             {: RESULT = new Expr(e1, e2, Operadores.CON, e1left); :}
+    | Expresion:e1 DIS Expresion:e2                             {: RESULT = new Expr(e1, e2, Operadores.DIS, e1left); :}
+    | Expresion:e1 IGUAL Expresion:e2                           {: RESULT = new Expr(e1, e2, Operadores.IGUAL, e1left); :}
+    | Expresion:e1 DIFF Expresion:e2                            {: RESULT = new Expr(e1, e2, Operadores.DIFF, e1left); :}
+    | Expresion:e1 MENOR Expresion:e2                           {: RESULT = new Expr(e1, e2, Operadores.MENOR, e1left); :}
+    | Expresion:e1 MAYOR Expresion:e2                           {: RESULT = new Expr(e1, e2, Operadores.MAYOR, e1left); :}
+    | Expresion:e1 MENOROIGUAL Expresion:e2                     {: RESULT = new Expr(e1, e2, Operadores.MENOROIGUAL, e1left); :}
+    | Expresion:e1 MAYOROIGUAL Expresion:e2                     {: RESULT = new Expr(e1, e2, Operadores.MAYOROIGUAL, e1left); :}
+    | Constante_booleana:b                                      {: RESULT = new Expr(b, bleft); :}
+    | Constante_aritmetica:c                                    {: RESULT = new Expr(c, cleft); :}
+    | Expresion:e1 MAS Expresion:e2                             {: RESULT = new Expr(e1, e2, Operadores.MAS, e1left); :}
+    | Expresion:e1 MENOS Expresion:e2                           {: RESULT = new Expr(e1, e2, Operadores.MENOS, e1left); :}
+    | Expresion:e1 POR Expresion:e2                             {: RESULT = new Expr(e1, e2, Operadores.POR, e1left); :}
     ;
-Expresion_booleana ::= Constante_booleana:b                     {: RESULT = new ExprB(b); :}
-    | NEG Expresion:e                                           {: RESULT = new ExprB(e, Operadores.NEG); :}
-    | Expresion:e1 CON Expresion:e2                             {: RESULT = new ExprB(e1, e2, Operadores.CON); :}
-    | Expresion:e1 DIS Expresion:e2                             {: RESULT = new ExprB(e1, e2, Operadores.DIS); :}
-    | Expresion:e1 IGUAL Expresion:e2                           {: RESULT = new ExprB(e1, e2, Operadores.IGUAL); :}
-    | Expresion:e1 DIFF Expresion:e2                            {: RESULT = new ExprB(e1, e2, Operadores.DIFF); :}
-    | Expresion:e1 MENOR Expresion:e2                           {: RESULT = new ExprB(e1, e2, Operadores.MENOR); :}
-    | Expresion:e1 MAYOR Expresion:e2                           {: RESULT = new ExprB(e1, e2, Operadores.MAYOR); :}
-    | Expresion:e1 MENOROIGUAL Expresion:e2                     {: RESULT = new ExprB(e1, e2, Operadores.MENOROIGUAL); :}
-    | Expresion:e1 MAYOROIGUAL Expresion:e2                     {: RESULT = new ExprB(e1, e2, Operadores.MAYOROIGUAL); :}
-    ;
-Expresion_aritmetica ::= Constante_aritmetica:c                 {: RESULT = new ExprA(c); :}
-    | Expresion:e1 MAS Expresion:e2                             {: RESULT = new ExprA(e1, e2, Operadores.MAS); :}
-    | Expresion:e1 MENOS Expresion:e2                           {: RESULT = new ExprA(e1, e2, Operadores.MENOS); :}
-    | Expresion:e1 POR Expresion:e2                             {: RESULT = new ExprA(e1, e2, Operadores.POR); :}
-    ;
-Decl_funcion ::= PRINCFUN IDV:i ENTRTIPFUNC PAP Lista_tipos:lt PCI SALTIPFUNC Tipo:t ENTRIMPLFUNC PAP Lista_vars:lv PCI SALIMPLFUNC CORCHAPERTURA Bloque:b RESULTADO Expresion:e FIN CORCHCIERRE                                     {: RESULT = new DeclF(i, lt, t, lv, b, e); :}
+Decl_funcion ::= PRINCFUN IDV:i ENTRTIPFUNC PAP Lista_tipos:lt PCI SALTIPFUNC Tipo:t ENTRIMPLFUNC PAP Lista_vars:lv PCI SALIMPLFUNC CORCHAPERTURA Bloque:b RESULTADO Expresion:e FIN CORCHCIERRE                                     {: RESULT = new DeclF(i, lt, t, lv, b, e, ileft); :}
+    | PRINCFUN IDV:i ENTRTIPFUNC PAP PCI SALTIPFUNC Tipo:t ENTRIMPLFUNC PAP PCI SALIMPLFUNC CORCHAPERTURA Bloque:b RESULTADO Expresion:e FIN CORCHCIERRE       {: RESULT = new DeclF(i, new Lista(), t, new Lista(), b, e, ileft); :}
     ;
 Lista_tipos ::= Lista_tipos:lt SEP TipoG:t                      {: lt.add(t); RESULT = lt; :}
-    | TipoG:t                                                   {: RESULT = new Lista("T",t); :}
+    | TipoG:t                                                   {: RESULT = new Lista(t); :}
     ;

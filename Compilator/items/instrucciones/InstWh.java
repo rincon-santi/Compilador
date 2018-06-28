@@ -5,8 +5,8 @@ import items.expresiones.Expr;
 import items.conjuntos.Lista;
 
 public class InstWh implements Generic{
-    private Expr cond;
-    private Lista bloque;
+    public Expr cond;
+    public Lista bloque;
 
     public InstWh(Expr c, Lista b){
         cond=c;

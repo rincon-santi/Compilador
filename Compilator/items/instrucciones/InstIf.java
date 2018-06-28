@@ -5,9 +5,9 @@ import items.conjuntos.Lista;
 import items.expresiones.Expr;
 
 public class InstIf implements Generic{
-    private final Expr condicion;
-    private final Lista consecuencia;
-    private final Lista aucontraire;
+    public final Expr condicion;
+    public final Lista consecuencia;
+    public final Lista aucontraire;
     
     public InstIf(Expr cond, Lista con, Lista au){
         condicion=cond;
