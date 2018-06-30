@@ -1,0 +1,21 @@
+Definamos programa: () -> entero
+enviando () |-> {
+    Definamos factorial : (entero) -> entero
+    enviando (n) |-> {
+        Sea resultado un entero.
+        Suponiendo (n > 0) {
+            antecesor <- n menos 1.
+            resultado <- n.
+            resultado <- resultado por evalua factorial en (antecesor).
+        } contrariamente {
+            resultado <- 1.
+        }
+        Sea antecesor un entero.
+        Devuelve resultado.
+    }
+    Sea n un entero.
+    n <- 20.
+    Sea result un entero.
+    result <- evalua factorial en (n).
+    Devuelve result.
+}

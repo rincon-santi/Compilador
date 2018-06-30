@@ -1,0 +1,42 @@
+Definamos combinatorio: (entero, entero) -> entero
+enviando (n, equis) |-> {
+    Definamos factorial : (entero) -> entero
+    enviando (n) |-> {
+        Sea resultado un entero.
+        Suponiendo (n > 0) {
+            antecesor <- n menos 1.
+            resultado <- n.
+            resultado <- resultado por evalua factorial en (antecesor).
+        } contrariamente {
+            resultado <- 1.
+        }
+        Sea antecesor un entero.
+        Devuelve resultado.
+    }
+    Sea intermedio1 un entero.
+    intermedio1 <- evalua factorial en (n).
+    intermedio2 <- evalua factorial en (equis).
+    intermedio2 <- intermedio2 por evalua factorial en (n menos equis).
+    Sea intermedio2 un entero.
+    Definamos entre : (entero, entero) -> entero
+    enviando (dividendo, divisor) |->{
+        Sea resultado un entero.
+        resultado <- 0.
+        auxiliar <- resultado por divisor.
+        Mientras (auxiliar < dividendo) {
+            resultado <- resultado mas 1.
+            auxiliar <- resultado por divisor.
+        }
+        Sea auxiliar un entero.
+        Devuelve resultado.
+    }
+    Devuelve evalua entre en (intermedio1, intermedio2).
+}
+Definamos main: () -> entero
+enviando () |-> {
+    Sea n un entero.
+    Sea equis un entero.
+    n <- 5.
+    equis <- 2.
+    Devuelve evalua combinatorio en (n, equis).
+}
