@@ -65,7 +65,7 @@ non terminal Variable Variable;
 
 
 
-precedence left NEG;
+precedence right NEG;
 precedence left POR, CON;
 precedence left MAS, MENOS, DIS;
 precedence left MENOR, MAYOR, MAYOROIGUAL, MENOROIGUAL;
@@ -138,6 +138,7 @@ Expresion ::= Variable:v                                        {: RESULT = new 
     | Expresion:e1 MAS Expresion:e2                             {: RESULT = new Expr(e1, e2, Operadores.MAS, e1left); :}
     | Expresion:e1 MENOS Expresion:e2                           {: RESULT = new Expr(e1, e2, Operadores.MENOS, e1left); :}
     | Expresion:e1 POR Expresion:e2                             {: RESULT = new Expr(e1, e2, Operadores.POR, e1left); :}
+    | NEG Expresion:e1                                          {: RESULT = new Expr(e1, Operadores.NEG, e1left); :}
     ;
 Decl_funcion ::= PRINCFUN IDV:i ENTRTIPFUNC PAP Lista_tipos:lt PCI SALTIPFUNC Tipo:t ENTRIMPLFUNC PAP Lista_vars:lv PCI SALIMPLFUNC CORCHAPERTURA Bloque:b RESULTADO Expresion:e FIN CORCHCIERRE                                     {: RESULT = new DeclF(i, lt, t, lv, b, e, ileft); :}
     | PRINCFUN IDV:i ENTRTIPFUNC PAP PCI SALTIPFUNC Tipo:t ENTRIMPLFUNC PAP PCI SALIMPLFUNC CORCHAPERTURA Bloque:b RESULTADO Expresion:e FIN CORCHCIERRE       {: RESULT = new DeclF(i, new Lista(), t, new Lista(), b, e, ileft); :}
