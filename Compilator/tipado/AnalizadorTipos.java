@@ -21,7 +21,7 @@ public class AnalizadorTipos {
 		Iterator<Object> id = a.pila.iterator();
 		while (id.hasNext()){
 			DeclF i = (DeclF)id.next();
-			if (((TipoFunc)i.tipo).tipoSalida != parsearExpr(((TipoFunc)i.tipo).salida))
+			if (((TipoFunc)i.tipo).tipoSalida != parsearExpr(((TipoFunc)i.tipo).salida, true))
 				throw new ExcpTipos("Intento de declarar una función asignandole un tipo de retorno que no corresponde en "+i.toString(), i.fila);
 			Iterator<Object> ii = ((TipoFunc)i.tipo).operaciones.pila.iterator();
                         while(ii.hasNext()){
@@ -31,9 +31,9 @@ public class AnalizadorTipos {
 		
 	}
 
-        private Tipo parsearVar(Variable v) throws ExcpTipos{
+        private Tipo parsearVar(Variable v, boolean strict) throws ExcpTipos{
                     if (v.coord==null){
-                        if(v.d.tipo instanceof Arreglo) throw new ExcpTipos("Intento de utilización de una colección sin acceder a un elemento", v.fila);
+                        if((v.d.tipo instanceof Arreglo)&&strict) throw new ExcpTipos("Intento de utilización de una colección sin acceder a un elemento", v.fila);
                         if(v.d.tipo instanceof TipoFunc) throw new ExcpTipos("Intento de utilización de una función como variable", v.fila);
                         else return v.d.tipo.t;
                     }
@@ -43,7 +43,7 @@ public class AnalizadorTipos {
                         while (it.hasNext()) {
                             Expr e=(Expr)it.next();
                             try {
-                            t.Acceso(parsearExpr(e));
+                            t.Acceso(parsearExpr(e, true));
                             } catch (Exception ex) {
                                 if (ex instanceof ExcpTipos) throw (ExcpTipos)ex;
                                 throw new ExcpTipos(ex.getMessage(),e.fila);
@@ -54,33 +54,33 @@ public class AnalizadorTipos {
                     }
         }
         
-	private Tipo parsearExpr(Expr e) throws ExcpTipos{
+	private Tipo parsearExpr(Expr e, boolean strict) throws ExcpTipos{
             try{
                 switch (e.type){
                 case 1:
-                    return parsearVar(e.v);
+                    return parsearVar(e.v, strict);
                 case 2:
                     return parsearInstr(e.i);
                 case 3:
                     switch(e.op){
                         case POR:
-                            return t.Multiplicacion(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.Multiplicacion(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         case CON:
-                            return t.And(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.And(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         case MAS:
-                            return t.Suma(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.Suma(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         case MENOS:
-                            return t.Resta(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.Resta(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         case DIS:
-                            return t.Or(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.Or(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         case MENOR:
                         case MAYOR:
                         case MENOROIGUAL:
                         case MAYOROIGUAL:
-                            return t.Comparacion(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.Comparacion(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         case IGUAL:
                         case DIFF:
-                            return t.Igual(parsearExpr(e.eb1), parsearExpr(e.eb2));
+                            return t.Igual(parsearExpr(e.eb1, true), parsearExpr(e.eb2, true));
                         default:
                             throw new ExcpTipos("Operador desconocido", e.fila);
                     }
@@ -89,7 +89,7 @@ public class AnalizadorTipos {
                 case 5:
                     return Tipo.BOOL;
                 case 6:
-                    return t.Negar(parsearExpr(e.eb1));
+                    return t.Negar(parsearExpr(e.eb1, true));
                 }
             }catch (Exception ex){
                 if (ex instanceof ExcpTipos) throw (ExcpTipos)ex;
@@ -101,10 +101,10 @@ public class AnalizadorTipos {
 	private Tipo parsearInstr(Object i) throws ExcpTipos{
             try{
 		if (i instanceof InstAsign) {
-			t.Asignacion(parsearVar(((InstAsign) i).var), parsearExpr(((InstAsign) i).expr));
+			t.Asignacion(parsearVar(((InstAsign) i).var, true), parsearExpr(((InstAsign) i).expr, true));
                         return Tipo.NULL;
 		} else if (i instanceof InstIf) {
-			t.Condicion(parsearExpr(((InstIf) i).condicion), "si");
+			t.Condicion(parsearExpr(((InstIf) i).condicion, true), "si");
 			Iterator<Object> ii = ((InstIf) i).consecuencia.pila.iterator();
 			while(ii.hasNext()){
 				parsearInstr(ii.next());
@@ -117,7 +117,7 @@ public class AnalizadorTipos {
                         }
                         return Tipo.NULL;
 		} else if (i instanceof InstWh){
-			t.Condicion(parsearExpr(((InstWh) i).cond), "mientras");
+			t.Condicion(parsearExpr(((InstWh) i).cond, true), "mientras");
 			Iterator<Object> ii = ((InstWh) i).bloque.pila.iterator();
 			while(ii.hasNext()){
 				parsearInstr(ii.next());
@@ -131,7 +131,7 @@ public class AnalizadorTipos {
                     while(ie.hasNext()){
                         Expr val=(Expr) ie.next();
                         try{
-                        t.Asignacion(parsearExpr(val), ((TipoG)ii.next()).t);
+                        t.Asignacion(parsearExpr(val, false), ((TipoG)ii.next()).t);
                         }catch (Exception exc){
                             if (exc instanceof ExcpTipos) throw (ExcpTipos)exc;
                             throw new ExcpTipos(exc.getMessage()+" en el valor "+val.toString()+" de la llamada "+iform.toString(), iform.fila);
@@ -140,7 +140,7 @@ public class AnalizadorTipos {
                     return ((TipoFunc)iform.d.tipo).tipoSalida;
                 } else if (i instanceof DeclF){
                     DeclF iform = (DeclF)i;
-                    if (((TipoFunc)iform.tipo).tipoSalida != parsearExpr(((TipoFunc)iform.tipo).salida))
+                    if (((TipoFunc)iform.tipo).tipoSalida != parsearExpr(((TipoFunc)iform.tipo).salida, true))
 			throw new ExcpTipos("Intento de declarar una función asignandole un tipo de retorno que no corresponde en "+i.toString(), ((DeclF) i).fila);
                     Iterator<Object> ii = ((TipoFunc)iform.tipo).operaciones.pila.iterator();
                     while(ii.hasNext()){

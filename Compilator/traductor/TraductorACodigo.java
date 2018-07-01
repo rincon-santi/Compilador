@@ -93,11 +93,22 @@ public class TraductorACodigo {
         
 	private void traducirExpr(Expr e, int lvl){
 			if (e.type==1){
-                            if(e.v.coord==null){
+                            if((e.v.coord==null)&&(!(e.v.d.tipo instanceof Arreglo))){
 				programa.add("lda "+(lvl-e.v.d.nivelDef)+" "+e.v.d.pos+";");
                                 pila++;
 				programa.add("ind;");
-                            } else {
+                            } else if(e.v.coord==null){
+                                int dim=1;
+                                for(int i=0; i<((Arreglo)e.v.d.tipo).d.pila.size(); i++){
+                                    dim=dim*((NumConst)((Arreglo)e.v.d.tipo).d.pila.get(i)).intValue();
+                                }
+                                for (int i=0; i<dim; i++){
+                                    programa.add("lda "+(lvl-e.v.d.nivelDef)+" "+(e.v.d.pos+i)+";");
+                                    pila++;
+                                    programa.add("ind;");
+                                }
+                            } 
+                            else {
 				Variable a = e.v;
 				ListIterator<Object> ie = a.coord.pila.listIterator(a.coord.pila.size());
 				ListIterator<Object> ii = ((Arreglo)a.d.tipo).d.pila.listIterator(((Arreglo)a.d.tipo).d.pila.size()); 
@@ -263,7 +274,7 @@ public class TraductorACodigo {
                         traducirExpr((Expr)ie.previous(), lvl);
                         programa.add("chk 0 "+(((NumConst)ic.previous()).intValue()-1)+";");
                         pila++;
-                        programa.add("ldc "+ii.next()+";");
+                        programa.add("ldc "+ii2.next()+";");
                         pila++;
 			programa.add("mul;");
                         if(maxPila<pila) maxPila=pila;
@@ -351,7 +362,20 @@ public class TraductorACodigo {
                 for (Object j : llamada.atributos.pila){
                     traducirExpr((Expr)j, lvl);
                 }
-                programa.add("cup "+llamada.atributos.pila.size()+" "+llamada.d.direccion+";");
+                int dimAtr=0;
+                ListIterator<Object> iteratorAtr = ((TipoFunc)llamada.d.tipo).listaTipos.pila.listIterator();
+                while(iteratorAtr.hasNext()){
+                    TipoG t= (TipoG) iteratorAtr.next();
+                    if (t instanceof Arreglo){
+                        int dimtoAdd=1;
+                        for(int i2=0; i2<((Arreglo)t).d.pila.size(); i2++){
+                                    dimtoAdd=dimtoAdd*((NumConst)((Arreglo)t).d.pila.get(i2)).intValue();
+                        }
+                        dimAtr=dimAtr+dimtoAdd;
+                    }
+                    else dimAtr+=1;
+                }
+                programa.add("cup "+dimAtr+" "+llamada.d.direccion+";");
                 if(maxPila<pila) maxPila=pila;
                 if(((TipoFunc)llamada.d.tipo).tipoSalida==Tipo.NULL) pila-=5;
                 else pila-=4;
